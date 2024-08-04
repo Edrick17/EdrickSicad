@@ -38,14 +38,13 @@ CONFIGURING OSPF AND EIGRP IN REAL WORLD DEVICES, NOT VIRTUAL
 
 
 
-
 task4: CONFIGURING eigrp FOR ALL switches,cms
        and OSPF for edge cisco,fortinet,palos:
 @cm:
 config t
-router eigrp M
+router eigrp 100
  no auto-summary
- network 10.m.100.0 0.0.0.255
+ network 10.12.100.0 0.0.0.255
 @CoreBAba:
 config t
 no router eigrp 100
@@ -87,9 +86,9 @@ show ip route eigrp
 
 @eDGE: both eigrp(internal) and ospf(external):
 router ospf 1
-router-id m.0.0.1
+router-id 12.0.0.1
 network 200.0.0.0 0.0.0.255 area 0
-network m.0.0.1 0.0.0.0 area 0
+network 12.0.0.1 0.0.0.0 area 0
 end
 
 EDGE12#sh ip route ospf
@@ -137,8 +136,8 @@ k5 MTU = 1500
 #EDGE:
 config t
 router ospf 1
- redistribute eigrp M subnets
-router eigrp M
+ redistribute eigrp 100 subnets
+router eigrp 100
  redistribute ospf 1 Metric 1000000 1 255 1 1500
 end
 
