@@ -1,0 +1,98 @@
+@VPN JP
+ config t
+no logging console 
+no ip domain lookup
+ip route 0.0.0.0 0.0.0.0 200.0.0.20
+
+int  gi 1
+ip add 200.0.0.10 255.255.255.0
+no shut
+
+int gi 3
+ip add 10.10.10.1 255.255.255.0
+no shut
+
+
+@VPN PH
+  config t
+no logging console 
+no ip domain lookup
+ip route 0.0.0.0 0.0.0.0 200.0.0.10
+
+int  gi 1
+ip add 200.0.0.20 255.255.255.0
+no shut
+
+int gi 3
+ip add 10.20.20.1 255.255.255.0
+no shut
+
+
+@BGP ROUTER
+
+config t
+router bgp 1
+bgp router-id 1.1.1.1
+bgp log-neighbor-changes
+neighbor 208.8.8.4 remote-as 45
+neighbor 207.7.7.2 remote-as 2
+neighbor 209.9.9.3 remote-as 3
+address-family ipv4
+neighbor 208.8.8.4 activate
+neighbor 207.7.7.2 activate
+neighbor 209.9.9.3 activate
+network 10.1.1.0 mask 255.255.255.0
+network 208.8.8.0 mask 255.255.255.0
+network 207.7.7.0 mask 255.255.255.0
+network 209.9.9.0 mask 255.255.255.0
+end
+
+@BURADO LAHAT routing
+
+Config t
+no ip routing 
+ip routing
+do sho ip route
+
+
+
+/////////activity morning
+
+sykes.com - 10.0.0.0/8 = 2500 agents
+
+12B = /12
+
+C 12B = /12
+S /32 - /12 = /20 3rd, 16i (255.255.240.0)
+I 10.0.16.0/20
+
+Network ID :    10.0.16.0
+First Usable:   10.0.16.1
+Last Usable:    10.0.31.254
+Network Gateway:10.0.31.255
+
+Not Sykes = 10.0.32.0
+
+
+
+Accentures.com - 10.0.0.0/8 = 1200 Agents
+
+
+C 11b = /11
+S /32 - /11 = /21 3rd, 8i (255.255.248.0)
+I 10.0.8.0/21
+
+Network ID : 10.0.8.0
+First Usable : 10.0.8.1
+Last Usable : 10.0.15.254
+Network Gateway : 10.0.15.255
+
+Convert to bits
+
+195 = 11000011
+13 = 1101
+1750 =11011010110
+855 = 1101100001
+
+
+
