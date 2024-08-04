@@ -49,18 +49,20 @@ router eigrp M
 @CoreBAba:
 config t
 no router eigrp 100
-router eigrp M
+router eigrp 100
  no auto-summary
- network 10.m.100.0 0.0.0.255
- network 10.m.50.0 0.0.0.255
- network 10.m.10.0 0.0.0.255
- network 10.m.1.0 0.0.0.255
- network 10.m.m.0 0.0.0.255
+ network 10.12.100.0 0.0.0.255
+ network 10.12.50.0 0.0.0.255
+ network 10.12.10.0 0.0.0.255
+ network 10.12.1.0 0.0.0.255
+ network 10.12.12.0 0.0.0.255
 @eDGE:
 config t
-router eigrp M
+router eigrp 100
  no auto-summary
- network 10.m.m.0 0.0.0.255
+ network 10.12.12.0 0.0.0.255
+ network 200.0.0.0 0.0.0.255
+ 
 
 how to eigrp if eigrp is working CORRECTLY?
 show ip eigrp neighbor
