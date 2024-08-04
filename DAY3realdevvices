@@ -1,3 +1,18 @@
+Troubleshooting and diagnostic for network eng
+Experience >>> certified , lethal = XP + Certified + Englishero
+Ping test : via windows cmd ( Failed )
+-cable unplugged,wrong IP,duplicate : 169.254.X.X
+-no vlan , wrong vlan, 
+- type "IP routing" on SW
+- Check foberuplinkSwitch = sh run int gi 0/1
+ " no switchport"
+Edge : sh ip int br
+NO routing configure : CCN  = Job
+No routing configure : CCND = Job
+
+Task1 : Static Routing : Very Cheap , china is King. Home/End Devices.
+VS DYNAMIC ROUTING
+
 CONFIGURING OSPF AND EIGRP IN REAL WORLD DEVICES, NOT VIRTUAL
 
 task4: CONFIGURING eigrp FOR ALL switches,cms
