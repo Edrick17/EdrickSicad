@@ -1,0 +1,1008 @@
+!@@@CORE SWITCH SA TAAS
+config t
+   hostname COREtaas12
+   enable secret pass
+   service password-encryption
+   no logging console
+   no ip domain-lookup
+   line console 0
+     password pass
+     login
+     exec-timeout 0 0
+    line vty 0 14
+      password pass
+      login
+      exec-timeout 0 0
+   Int Vlan 1
+     no shutdown
+	 ip add 10.12.1.2 255.255.255.0
+	 description MGMTDATA
+   Int Vlan 10
+     no shutdown
+	 ip add 10.12.10.2 255.255.255.0
+	 description WIRELESS
+   Int Vlan 50
+     no shutdown
+	 ip add 10.12.50.2 255.255.255.0
+	 description IPCCTV
+   Int Vlan 100
+     no shutdown
+	 ip add 10.12.100.2 255.255.255.0
+	 description VOICEVLAN
+
+!!!DAPAT 7 UNDER SCORE ANG NA EDIT MO  ( LINE 34 to 68 PASTE TO COREBABA SWITCH )
+!@@@LeafSwitchONLY
+config t
+   hostname COREbaba12
+   enable secret pass
+   service password-encryption
+   no logging console
+   no ip domain-lookup
+   line console 0
+     password pass
+     login
+     exec-timeout 0 0
+    line vty 0 14
+      password pass
+      login
+      exec-timeout 0 0
+   Int Gi 0/1
+     no shutdown
+	  no switchport
+	  ip add 10.12.12.4 255.255.255.0
+   Int Vlan 1
+     no shutdown
+	 ip add 10.12.1.4 255.255.255.0
+	 description MGMTDATA
+   Int Vlan 10
+     no shutdown
+	 ip add 10.12.10.4 255.255.255.0
+	 description WIRELESS
+   Int Vlan 50
+     no shutdown
+	 ip add 10.12.50.4 255.255.255.0
+	 description IPCCTV
+   Int Vlan 100
+     no shutdown
+	 ip add 10.12.100.4 255.255.255.0
+	 description VOICEVLAN
+	 
+!DHCP: DYNAMIC HOST CONFIGURATION PROTOCOL
+!!!DAPAT 21 UNDER SCORE ANG NA EDIT MO  ( LINE 72 to 99 PASTE TO COREBABA SWITCH )
+!@@@LEAF SWITCH
+config t
+ip dhcp Excluded-add 10.12.1.1 10.12.1.100
+ip dhcp Excluded-add 10.12.10.1 10.12.10.100
+ip dhcp Excluded-add 10.12.50.1 10.12.50.100
+ip dhcp Excluded-add 10.12.100.1 10.12.100.100
+ip dhcp pool MGMTDATA
+   network 10.12.1.0 255.255.255.0
+   default-router 10.12.1.4
+   domain-name MGMTDATA.COM
+   dns-server 10.12.1.10
+ip dhcp pool WIFIDATA
+   network 10.12.10.0 255.255.255.0
+   default-router 10.12.10.4
+   domain-name WIFIDATA.COM
+   dns-server 10.12.1.10
+ip dhcp pool IPCCTV
+   network 10.12.50.0 255.255.255.0
+   default-router 10.12.50.4
+   domain-name IPCCTV.COM
+   dns-server 10.12.1.10
+ip dhcp pool VOICEVLAN
+   network 10.12.100.0 255.255.255.0
+   default-router 10.12.100.4
+   domain-name VOICEVLAN.COM
+   dns-server 10.12.1.10
+   option 150 ip 10.12.100.8   
+   END
+
+!!CREATING AND PLACING PORTS INSIDEAVLAN:
+( LINE 103 to 141 PASTE TO COREBABA SWITCH )
+config t
+vlan 10
+   name WIFIVLAN
+vlan 50
+   name IPCCTVLAN
+vlan 69
+   name UPPERMGMT
+vlan 70
+    name ACCOUNTING
+vlan 71
+    name HR
+vlan 100
+   name VOICEVLAN
+Int Fa 0/2
+  switchport mode access
+  switchport access vlan 10  
+Int Fa 0/4
+  switchport mode access
+  switchport access vlan 10
+Int Fa 0/6
+  switchport mode access
+  switchport access vlan 50  
+Int Fa 0/8
+  switchport mode access
+  switchport access vlan 50    
+Int Fa 0/3
+  switchport mode access
+  switchport access vlan 100     
+Int Fa 0/5
+  switchport mode access  
+  switchport voice vlan 100
+  mls qos trust device cisco-phone 
+  switchport access vlan 1
+Int Fa 0/7
+  switchport mode access
+  switchport voice vlan 100 
+  mls qos trust device cisco-phone 
+ switchport access vlan 1
+ end
+
+!IP CAMERAS NEED MAC ADDRESS RESERVATION FOR FIXED IP  (LINE 144 to 151 PASTE TO COREBABA)
+config t
+ip routing
+ip dhcp pool CAMERA6
+host 10.12.50.6 255.255.255.0
+client-identifier 001a.0709.c258
+ip dhcp pool CAMERA8
+host 10.12.50.8 255.255.255.0
+client-identifier 001a.0704.7f5b
+
+!!cisco unified call manager Express command
+!@@@CUCM-M
+config t
+   hostname CUCM-12
+   enable secret pass
+   service password-encryption
+   no logging console
+   no ip domain-lookup
+   line console 0
+     password pass
+     login
+     exec-timeout 0 0
+    line vty 0 14
+      password pass
+      login
+      exec-timeout 0 0
+   Int Fa 0/0
+     no shutdown
+	 ip add 10.12.100.8 255.255.255.0 
+	 end
+   
+!!!CUCM ANALOG PHONES CONFIG
+configure terminal
+dial-peer voice 1 pots
+   destination-pattern 1200
+   port 0/0/0
+dial-peer voice 2 pots
+   destination-pattern 1201
+   port 0/0/1
+dial-peer voice 3 pots
+   destination-pattern 1202
+   port 0/0/2
+dial-peer voice 4 pots
+   destination-pattern 1203
+   port 0/0/3
+end
+
+!!IP telephony
+config t
+no telephony-service
+telephony-service
+   no auto assign
+   no auto-reg-ephone
+   max-ephones 5
+   max-dn 20
+   ip source-address 10.12.100.8 port 2000
+   create cnf-files
+ephone-dn 1
+  number 1211
+ephone-dn 2
+  number 1222
+ephone-dn 3
+  number 1233
+ephone-dn 4
+  number 1244
+ephone-dn 5
+  number 1255
+ephone-dn 6
+  number 1266
+ephone-dn 7
+  number 1277
+ephone-dn 8
+  number 1288
+ ephone-dn 9
+   number 1290
+ephone-dn 10
+ number 1291
+Ephone 1
+  Mac-address CCD8.C1FB.2325
+  type 8945
+  button 1:8 2:7 3:6 4:9
+  restart
+Ephone 2
+  Mac-address CCD8.C1FB.161B
+  type 8945
+  button 1:4 2:3 3:2 4:10
+  restart  
+end
+
+@@@Enabling Video Calls
+configure terminal
+ephone 1
+   video
+   voice service voip
+   h323
+   call start slow
+ephone 2
+   video
+   voice service voip
+   h323
+   call start slow
+end
+
+!!@@allow incoming calls
+configure terminal
+voice service voip
+ip address trusted list
+ipv4 0.0.0.0 0.0.0.0
+exit
+
+!OUTGOING CALL FROM CUCM TO OTHER CUCM.
+
+
+
+@@@@@@
+!@@@EDGE ROUTE CONFIG
+config t
+   hostname EDGE-12
+   enable secret pass
+   service password-encryption
+   no logging console
+   no ip domain-lookup
+   line console 0
+     password pass
+     login
+     exec-timeout 0 0
+    line vty 0 14
+      password pass
+      login
+      exec-timeout 0 0
+   Int Gi 0/0/0
+     description INSIDE
+     ip add 10.12.12.1 255.255.255.0
+	 no shutdown
+   Int Gi 0/0/1
+     description OUTSIDE
+	 ip add 200.0.0.12 255.255.255.0
+	 no shutdown
+   Int Loopback 0
+     description VIRTUALIP
+	 ip add 12.0.0.1 255.255.255.255
+ end
+
+ !!!STATIC ROUTING FOR MININUM WAGERS: 645php/day
+ !!! EDGE route NOT dikit to ClassMate:
+conf t
+ ip routing 
+ ip route 10.11.0.0 255.255.0.0 200.0.0.11
+! ip route 10.12.0.0 255.255.0.0 200.0.0.12
+ ip route 10.21.0.0 255.255.0.0 200.0.0.21
+ ip route 10.22.0.0 255.255.0.0 200.0.0.22
+ ip route 10.31.0.0 255.255.0.0 200.0.0.31
+ ip route 10.32.0.0 255.255.0.0 200.0.0.32
+ ip route 10.41.0.0 255.255.0.0 200.0.0.41
+ ip route 10.42.0.0 255.255.0.0 200.0.0.42
+ ip route 10.51.0.0 255.255.0.0 200.0.0.51
+ ip route 10.52.0.0 255.255.0.0 200.0.0.52
+ ip route 10.61.0.0 255.255.0.0 200.0.0.61
+ ip route 10.62.0.0 255.255.0.0 200.0.0.62
+ ip route 10.71.0.0 255.255.0.0 200.0.0.71
+ ip route 10.72.0.0 255.255.0.0 200.0.0.72
+ ip route 10.81.0.0 255.255.0.0 200.0.0.81
+ ip route 10.82.0.0 255.255.0.0 200.0.0.82
+ ip route 10.12.0.0 255.255.0.0 10.12.12.4
+ end
+ 
+*********************************************
+Layer three/3 switch ROUTING = 300k up!!!
+@SWITCH/COREBABA
+!SI SWITCH ASA/DIKIT KAY EDGE PARA MAKALABAS
+conf t 
+ip routing
+ip route 0.0.0.0 0.0.0.0 10.12.12.1
+end
+
+@CUCM:DEFAULT ROUTING( 0.0.0.0 0.0.0.0) FOR CUCM:
+!SI CUCM ASA/DIKIT KAY SWITCH VLAN 100 PARA MAKALABAS
+conf t
+ip routing
+ip route 0.0.0.0 0.0.0.0 10.12.100.4
+end
+
+!How to Static Route windows Server:
+cmd
+route  add   10.0.0.0   mask   255.0.0.0    10.12.1.4
+route  add  200.0.0.0   mask  255.255.255.0   10.12.1.4
+
+********************************************
+
+ 
+@@@@@@@@@
+
+config t
+dial-peer voice 69 voip
+ service rivanaa out-bound
+ destination-pattern 1269
+ session target ipv4:10.12.100.8
+ incoming called-number 1269
+ dtmf-relay h245-alphanumeric
+ codec g711ulaw
+ no vad
+!
+telephony-service
+ moh "flash:/en_bacd_music_on_hold.au"
+!
+application
+ service rivanaa flash:app-b-acd-aa-3.0.0.2.tcl
+  paramspace english index 1        
+  param number-of-hunt-grps 2
+  param dial-by-extension-option 8
+  param handoff-string rivanaa
+  param welcome-prompt flash:en_bacd_welcome.au
+  paramspace english language en
+  param call-retry-timer 15
+  param service-name rivanqueue
+  paramspace english location flash:
+  param second-greeting-time 60
+  param max-time-vm-retry 2
+  param voice-mail 1234
+  param max-time-call-retry 700
+  param aa-pilot 1269
+ service rivanqueue flash:app-b-acd-3.0.0.2.tcl
+  param queue-len 15
+  param aa-hunt1 1200
+  param aa-hunt2 1201
+  param aa-hunt3 1290
+  param aa-hunt4 1291
+  param queue-manager-debugs 1
+  param number-of-hunt-grps 4
+****************************************************************************
+INSTALL DNS - DOMAIN NAME SERVER
+
+OPEN CMD
+
+Powershell
+Remove-WindowsFeature -name dns
+!
+Install-WindowsFeature -name dns -includeManagementTools
+
+****************************************************************************
+TURN OFF Firewall:
+
+powershell
+Set-NetfirewallProfile -name public,private,domain -enabled false
+
+****************************************************************************
+WEB SERVER
+
+OPEN CMD
+
+powershell
+Remove-WindowsFeature  -name  web-server
+
+Install-WindowsFeature -name web-server -includeManagementTools
+
+New-Website -name "CCNA" -hostheader "www.website.com" -physicalpath "d:\webs\datingbiz" -force
+****************************************************************************
+
+show call application sessions
+call application session stop id 17
+how to clean
+config t
+application
+ NO service rivanaa flash:app-b-acd-aa-3.0.0.2.tcl
+ NO service rivanqueue flash:app-b-acd-3.0.0.2.tcl
+end
+=============================================================
+DEBUG COMMANDS
+================
+
+=============================================================
+DEBUG COMMANDS
+=============================================================
+
+          
+http://docwiki.cisco.com/wiki/Cisco_IOS_Voice_Troubleshooting_and_Monitoring_--_Tcl_IVR_Troubleshooting
+
+debug voice application ?
+debug voice application error
+debug voice application script
+debug voice application states
+
+conf t
+        logging console
+
+========================
+CHECK AVAILABLE SERVICES
+========================
+conf t
+        application
+                service ?  
+******************************************************************
+
+SIP CONFIGURATION
+conf t
+ voice service voip
+  allow-connections h323 to sip
+          
+  allow-connections sip to h323
+  allow-connections sip to sip
+  supplementary-service h450.12
+ sip
+   bind control source-interface _____0/0
+   bind media source-interface _____0/0
+   registrar server expires max 600 min 60
+!
+ voice register global
+  mode cme
+  source-address 192.168._.1 port 5060
+  max-dn 12
+  max-pool 12
+  authenticate register
+  create profile sync
+ voice register dn 1
+   number ____
+   allow watch
+   name _______
+ voice register dn 2
+   number ___
+   allow watch
+   name _______
+          
+  voice register pool 1
+    id mac ____.____.____
+    number 1 dn 1
+    dtmf-relay sip-notify
+    username ____ password ____
+    codec g711ulaw
+!
+  voice register pool 1
+    id mac ____.____.____
+    number 1 dn 2
+    dtmf-relay sip-notify
+    username ____ password ____
+    codec g711ulaw
+!
+*******call other countries!!!********
+config t
+!
+dial-peer voice _ voip
+destination-pattern k..
+session protocol sipv2
+session target sip-server
+codec g711ulaw
+exit
+          
+sip-ua
+sip-server ipv4:192.168.k.1
+
+======================================================
+======================================================
+======================================================
+task 1 : create a packet filter firewall acl to block other table
+>use standard ACL #1-99
+edge
+>block other column allow your own column
+
+conf t
+no ip access-list 1
+ip access-list 1 deny 10.11.0.0 0.0.255.255 log
+ip access-list 1 deny 10.21.0.0 0.0.255.255 log
+ip access-list 1 deny 10.41.0.0 0.0.255.255 log
+ip access-list 1 Permit any
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD BAWALSILA2
+ip access-list STANDARD BAWALSILA2
+ deny 10.11.0.0 0.0.255.255 log
+ deny 10.21.0.0 0.0.255.255 log
+ deny 10.41.0.0 0.0.255.255 log
+ Permit any
+interface gi 0/0/1
+ ip access-group BAWALSILA2 in
+end
+
+########################
+LAB 2
+
+
+
+conf t
+no ip access-list 1
+ip access-list 1 deny 10.22.0.0 0.0.255.255 log
+ip access-list 1 deny 10.32.0.0 0.0.255.255 log
+ip access-list 1 deny 10.41.0.0 0.0.255.255 log
+ip access-list 1 Permit any
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD BAWALSILA2
+ip access-list STANDARD BAWALSILA2
+ deny 10.22.0.0 0.0.255.255 log
+ deny 10.41.0.0 0.0.255.255 log
+ deny 10.32.0.0 0.0.255.255 log
+ Permit any
+interface gi 0/0/1
+ ip access-group BAWALSILA2 in
+end
+
+
+########################
+LAB 3 - BAWAL SILA LAHAT
+
+
+
+conf t
+no ip access-list 3
+access-list 3
+access list 3 permit 10.11.0.0 0.0.255.255 log
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD  KamiLang
+ip access-list STANDARD  KamiLang
+ permit 10.11.0.0 0.0.255.255 log
+
+interface gi 0/0/1
+ ip access-group KamiLang in
+end
+
+########################
+LAB 4 - KAMI LANG BAWAL SILA LAHAT PART2
+
+conf t
+no ip access-list 3
+access-list 3
+access list 3 permit 10.32.0.0 0.0.255.255 log
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD  KamiLang
+ip access-list STANDARD  KamiLang
+ permit 10.32.0.0 0.0.255.255 log
+
+interface gi 0/0/1
+ ip access-group KamiLang in
+end
+
+
+==================================
+==================================
++==================================
+give internet and DNS resolution to edge
+
+config t
+ip route 0.0.0.0 0.0.0.0 200.0.0.1
+ip domain-lookup
+ip name-server 1.1.1.1 8.8.8.8
+end
+
+
+==========================
+Block Sites
+
+conf t
+no ip access-list 1
+ip access-list 1 deny 66.254.0.0 0.0.255.255 log
+ip access-list 1 deny 104.21.0.0 0.0.255.255 log
+ip access-list 1 deny 68.235.0.0 0.0.255.255 log
+ip access-list 1 deny 88.208.29.0 0.0.255.255 log
+ip access-list 1 Permit any
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD BAWALPORN
+ip access-list STANDARD BAWALPORN
+ deny 66.254.0.0 0.0.255.255 log
+ deny 104.21.0.0 0.0.255.255 log
+ deny 68.235.0.0 0.0.255.255 log
+ deny 88.208.29.0 0.0.255.255 log
+ Permit any
+interface gi 0/0/1
+ ip access-group BAWALPORN in
+end
+
+
+==========================
+Allow Sites again
+
+conf t
+
+interface gi 0/0/1
+ no ip access-group BAWALPORN in
+end
+
+
+===========================
+
+EXAMPLE 4 : help your brothers for cutting classes
+
+
+conf t
+no ip access-list 1
+ip access-list 1 deny 104.22.0.0 0.0.255.255 log
+ip access-list 1 deny 184.168.0.0 0.0.255.255 log
+ip access-list 1 deny 50.6.0.0 0.0.255.255 log
+ip access-list 1 Permit any
+interface gi 0/0/1
+ ip access-group 1 in
+end
+
+Version 2: USE NAME
+
+conf t
+no ip access-list STANDARD CUTTINGCLASSES
+ip access-list STANDARD CUTTINGCLASSES
+ deny 104.22.0.0 0.0.255.255 log
+ deny 184.168.0.0 0.0.255.255 log
+ deny 50.6.0.0 0.0.255.255 log
+ Permit any
+interface gi 0/0/1
+ ip access-group CUTTINGCLASSES in
+end
+
+
+==============================================
+
+
+task6: How to Make CUCM intentionally hackable to Learn
+the Basics for Firewalls.
+before: nmap -v 10.m.100.8
+@Cucm:
+config t
+int fa0/0
+ no shut
+ ip add 10.12.100.9 255.255.255.0 Secondary
+service finger
+service tcp-small-servers
+service udp-small-servers
+ip dns server
+ip http server
+ip http secure-server
+!Make Ping EASY
+
+ip host pc 10.12.1.10
+ip host cm 10.12.100.8
+ip host cm2 10.12.100.9
+ip host p1 10.12.100.101
+ip host p2 10.12.100.102
+ip host c6 10.12.50.6
+ip host c8 10.12.50.8
+ip host sw 10.12.1.4
+ip host ed 10.12.12.1
+=============================================
+TASk 7 - create your first packet filter firewall:
+
+lab1 : hired as netsec engr
+> create a policy for cm and cm2
+cm  is a dns,http,https server
+cm2 is sscp, sip , secureSip server
+Create a number/named policy:
+
+
+formula:       PROTOCOL    HACKER    VICTIM     PORT:
+(data = TCP , VOIP = UDP , ping= ICMP , lahat= IP)
+(Hacker = Any)
+
+
+config t
+no ip access-list extended POLICY1
+ip access-list extended POLICY1
+Permit tcp any host cm eq 53 log
+Permit tcp any host cm eq 80 log
+Permit tcp any host cm eq 443 log
+Permit tcp any  host cm2 eq 2000 log
+Permit tcp any  host cm2 eq 5060 log
+Permit tcp any  host cm2 eq 5061 log
+Interface fa 0/0
+ no ip access-group POLICY1 in
+ do sh ip access-list POLICY1
+
++=======================================
+Lab 2 
+Policy2 
+CM = allow ssh,telnet,dns,sccp
+CM2 = dns,http,hhttps
+
+Interface fa 0/0
+ no ip access-group POLICY1 in
+
+config t
+no ip access-list extended POLICY2
+ip access-list extended POLICY2
+Permit tcp any host cm eq 22 log
+Permit tcp any host cm eq 23 log
+Permit tcp any host cm eq 53 log
+Permit tcp any host cm eq 2000 log
+Permit ICMP any host cm2
+Permit tcp any  host cm2 eq 53 log
+Permit tcp any  host cm2 eq 80 log
+Permit tcp any  host cm2 eq 443 log
+
+Interface fa 0/0
+ ip access-group POLICY2 in
+ do sh ip access-list POLICY2
+
+
+
+=====================================
+Lab 4
+Policy4
+CM = allow dns,sccp,ssh
+Cm2 = allow ping https
+
+config t
+no ip access-list extended POLICY4
+ip access-list extended POLICY4
+
+Permit tcp any host cm eq 53 log
+Permit tcp any host cm eq 2000 log
+Permit tcp any host cm eq 22 log
+Permit ICMP any host cm2
+Permit tcp any  host cm2 eq 80 log
+
+Interface fa 0/0
+ ip access-group POLICY4 in
+ do sh ip access-list POLICY4
+
+=====================================
+POLICY 5 
+multiple hackers , multiple victims Create policy5 with conditions
+
+-pc can ping, ssh, telnet cm
+ pc can ping, http cm2
+-p1 can ping cm
+-p2 can sccp cm
+-c6 can ping cm
+-c8 can http cm
+-ed can http cm
+
+config t
+no ip access-list extended POLICY5
+ip access-list extended POLICY5
+permit icmp host pc host cm
+Permit tcp host pc host cm eq 22 log
+Permit tcp host pc host cm eq 23 log
+permit icmp host pc host cm2
+Permit tcp host pc host cm2 eq 80 log
+permit icmp host p1 host cm
+Permit tcp host p2 host cm eq 2000 log
+permit icmp host c6 host cm
+Permit tcp host c8 host cm eq 2000 log
+Permit tcp host ed host cm eq 2000 log
+Interface fa 0/0
+ ip access-group POLICY5 in
+ do sh ip access-list POLICY5
+=========================================
+
+
+TASK5
+
+Network Services needed by Cisco Devices
+
+DNS - domain name system
+Powershell ISE
+
+﻿Install-WindowsFeature  -name dns  -includeManagementTools
+Add-DnsServerPrimaryZone -Name "ngcpM.ph" -ZoneFile "ngcpM.ph.dns"
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name ns  -ipv4address 10.m.1.10
+add-DnsServerResourceRecord -zonename ngcpM.ph -Cname -name www -hostname ns.ngcpM.ph
+add-DnsServerResourceRecord -zonename ngcpM.ph -Cname -name imap -hostname ns.ngcpM.ph
+add-DnsServerResourceRecord -zonename ngcpM.ph -Cname -name pop -hostname ns.ngcpM.ph
+add-DnsServerResourceRecord -zonename ngcpM.ph -Cname -name smtp -hostname ns.ngcpM.ph
+###FOR CISCO DEVICES DNS RECORDS;
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name cb  -ipv4address 10.m.1.4
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name ct  -ipv4address 10.m.1.2
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name cm  -ipv4address 10.m.100.8
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name ed  -ipv4address 10.m.m.1
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name p1  -ipv4address 10.m.100.101
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name p2  -ipv4address 10.m.100.102
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name c1  -ipv4address 10.m.50.6
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name c2  -ipv4address 10.m.50.8
+add-DnsServerResourceRecord -zonename ngcpM.ph -A -name ap  -ipv4address 10.m.10.3
+
+CUCM:
+
+config t
+ip domain-name netsec12.com
+ip domain-lookup
+ip name-server 10.12.1.10
+end
+ping cm.netsec12.com
+ping p1.netsec12.com
+
+==============================================
+
+
+TASK 6 : CISCO NETWORK SERVICES:|
+Step1: give IP address and internet
+
+@vpnPH:
+
+config t
+ip route 0.0.0.0 0.0.0.0 192.168.108.2
+int gi 2
+ ip add 192.168.108.8 255.255.255.0
+ no shut
+
+int gi 1
+ ip add 192.168.101.8 255.255.255.0
+ no shut
+ end
+
+sho ip int br
+
+ping 8.8.8.8
+
+
+@vpnPH:
+config t
+int gi 1
+ip nat INSIDE
+int gi 2
+ip nat OUTSIDE
+int gi 3
+ip nat INSIDE
+no access-list 7
+access-list 7 permit 192.168.101.0 0.0.0.255
+access-list 7 permit 192.168.102.0 0.0.0.255
+ip nat inside source list 7 interface Gi 2 overload
+ip nat inside source static 192.168.102.69 192.168.108.69
+ip nat inside source static 192.168.101.88 192.168.108.88
+end
+
+
+
+==============================================
+
+
+TASK 7 Configure Linux Building
+
+@BLDG102
+
+sudo su
+
+ifconfig eth0 192.168.102.69 netmask 255.255.255.0 up
+route add default gw 192.168.102.8
+ping 8.8.8.8
+ping 1.1.1.1
+netstat -rn
+
+@BLDG101
+
+sudo su
+ifconfig eth0 192.168.101.88 netmask 255.255.255.0 up
+route add default gw 192.168.101.8
+ping 8.8.8.8
+ping 1.1.1.1
+netstat -rn
+
+@VPN-PH
+ping 8.8.8.8 source 192.168.101.8
+ping 4.4.4.4 source 192.168.102.8
+VPN-PH1#sho ip nat translations          
+Pro  Inside global         Inside local          Outside local         Outside global
+---  192.168.108.88        192.168.101.88        ---                   ---
+---  192.168.108.69        192.168.102.69        ---                   ---
+icmp 192.168.108.8:9       192.168.102.8:9       8.8.4.4:9             8.8.4.4:9
+icmp 192.168.108.8:6       192.168.102.8:6       4.2.2.2:6             4.2.2.2:6
+icmp 192.168.108.8:5       192.168.102.8:5       8.8.8.8:5             8.8.8.8:5
+icmp 192.168.108.8:8       192.168.101.8:8       4.2.2.2:8             4.2.2.2:8
+icmp 192.168.108.8:7       192.168.101.8:7       8.8.4.4:7             8.8.4.4:7
+Total number of translations: 7
+
+
+
+
+
+
+
+
+==============================================
+
+conf t
+
+	dot11 ssid 12sipEdrick
+		authentication open
+		authentication key-management wpa
+		wpa-psk ascii C1sc0123
+		guest-mode
+	int dot11Radio 0
+		no shut
+		encryption mode ciphers tkip
+		ssid 12sipEdrick
+
+MAC = b2a6.f6bb.da.29
++===============================================
+
+conf t
+ voice service voip
+  allow-connections h323 to sip
+  allow-connections sip to h323
+  allow-connections sip to sip
+  supplementary-service h450.12
+ sip
+   bind control source-interface _____0/0
+   bind media source-interface _____0/0
+   registrar server expires max 600 min 60
+!
+ voice register global
+  mode cme
+  source-address 192.168._.1 port 5060
+  max-dn 12
+  max-pool 12
+  authenticate register
+  create profile sync
+ voice register dn 1
+   number ____
+   allow watch
+   name _______
+ voice register dn 2
+          
+   number ___
+   allow watch
+   name _______
+  voice register pool 1
+    id mac ____.____.____
+    number 1 dn 1
+    dtmf-relay sip-notify
+    username ____ password ____
+    codec g711ulaw
+!
+  voice register pool 1
+    id mac ____.____.____
+    number 1 dn 2
+    dtmf-relay sip-notify
+    username ____ password ____
+    codec g711ulaw
+!
+*******call other countries!!!********
+config t
+!
+dial-peer voice _ voip
+destination-pattern k..
+session protocol sipv2
+          
+session target sip-server
+codec g711ulaw
+exit
+sip-ua
+sip-server ipv4:192.168.k.1
+
+
+
+
